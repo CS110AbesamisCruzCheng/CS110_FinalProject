@@ -12,21 +12,31 @@ public class btdb{
         //Runs a given command
         String command = in.next();
         while(!command.equals("exit")){
-            
             int key = in.nextInt();
             if(command.equals("insert")){               //Inserts a new key with an associated value
-                tree.treeInsert(key);
-                val.insert(in.nextLine());
-                System.out.println(key + " inserted.");
+                if(tree.treeInsert(key)){
+                    val.insert(in.nextLine());
+                    System.out.println(key + " inserted.");
+                }else{
+                    in.nextLine();
+                }
             }else if(command.equals("update")){         //Updates the value associated with a key
-                val.update(in.nextLine(), tree.getRecNo(key));
-                System.out.println(key + " updated.");
+                if(tree.search(key, 0)!=-1){
+                    System.out.println(tree.search(key, 0));
+                    val.update(in.nextLine(), tree.select(key, 0));
+                    System.out.println(key + " updated.");
+                }else{
+                    in.nextLine();
+                }
             }else if(command.equals("select")){         //Print value associated with a key
-                System.out.println(key + " => " + val.select(tree.getRecNo(key)));
+                if(tree.search(key, 0)!=-1){
+                    System.out.println(key + " => " + val.select(tree.select(key, 0)));
+                }
+            }else if(command.equals("print")){
+                tree.print(key);
             }else{
                 System.out.println("ERROR: invalid command.");
             }
-            
             command = in.next();
         }
     }
