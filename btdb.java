@@ -23,14 +23,14 @@ public class btdb{
             }else if(command.equals("update")){         //Updates the value associated with a key
                 if(tree.search(key, 0)!=-1){
                     System.out.println(tree.search(key, 0));
-                    val.update(in.nextLine(), tree.select(key, 0));
+                    val.update(in.nextLine(), tree.select(key));
                     System.out.println(key + " updated.");
                 }else{
                     in.nextLine();
                 }
             }else if(command.equals("select")){         //Print value associated with a key
                 if(tree.search(key, 0)!=-1){
-                    System.out.println(key + " => " + val.select(tree.select(key, 0)));
+                    System.out.println(key + " => " + val.select(tree.select(key)));
                 }
             }else if(command.equals("print")){
                 tree.print(key);

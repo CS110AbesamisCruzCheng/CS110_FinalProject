@@ -3,7 +3,7 @@ import java.util.*;
 
 public class bt {
     static int order = 7;
-    static int nodeCounter = 1;  //data.bt
+    static long nodeCounter = 1;  //data.bt
     static int insertCounter = -1; //data.values
     static RandomAccessFile raf;
     
@@ -22,12 +22,14 @@ public class bt {
     }
 
     public static boolean treeInsert(int key) throws IOException{
+        System.out.println("KILLEME");
         insertCounter++;
         if(search(key, 0) == -1){
             raf.seek(8);
             long rootNo = raf.readLong(); 
             if(noKeys(rootNo)==order-1){
-                nodeCounter += 2;
+                System.out.println("No keys    :" + noKeys(rootNo));
+                nodeCounter++;
                 raf.seek((((nodeCounter-1)*(3*order-1))*8)+16);
                 raf.writeLong(-1);
                 for(int i = 0; i < order-1; i++){
@@ -40,13 +42,12 @@ public class bt {
                     raf.writeLong(-1);
                 }
                 raf.writeLong(-1);
-                
-                long newRoot = nodeCounter-1;
-                raf.writeLong(newRoot);    
+                raf.seek(8);
+                raf.writeLong(nodeCounter-1);
+                insert(nodeCounter-1, key, insertCounter);   
+            }else{
+                insert(rootNo, key, insertCounter);   
             }
-            raf.seek(8);
-            rootNo = raf.readLong(); 
-            insert(rootNo, key, insertCounter);
             raf.seek(0);
             raf.writeLong(nodeCounter);
             return true;
@@ -57,6 +58,7 @@ public class bt {
     }
     
     public static void split(long rootNode, int j, long[] Arr) throws IOException{
+        System.out.println("KILL me pls");
         nodeCounter++;
         raf.seek(0);
         raf.seek((((raf.readLong()-1)*(3*order-1))*8)+16);
@@ -123,15 +125,15 @@ public class bt {
     }
     
     public static long search(int key, long node) throws IOException{
-        raf.seek(0);        
-        long numRecs = raf.readLong();
         long ans = -1;
         if(noKeys(node)>0){
             for(int i = 0; i<order-1; i++){
                 raf.seek(((node*(3*order-1))*8)+16+16+(i*24));
                 long k = raf.readLong();
+                System.out.println("JRGWOD " + k);
                 if(k==key){
                     ans = node;
+                    break;
                 }else if(k>key){
                     //go to left child of k
                     raf.seek(((node*(3*order-1))*8)+16+8+(i*24));
@@ -141,7 +143,7 @@ public class bt {
                     }else{
                         ans = -1;
                     }
-                }else{
+                }else if(i==order-2 && k<key){
                     raf.seek(((node*(3*order-1))*8)+16+8+((order-1)*24));
                     long n = raf.readLong();
                     if(n!=-1){
@@ -151,48 +153,26 @@ public class bt {
                     }
                 }
             }
+            
         }
         System.out.println(key + "    " +ans);
         return ans;
     }
     
-     public static long select(int key, long node) throws IOException{
-        raf.seek(0);        
-        long numRecs = raf.readLong();
+     public static long select(int key) throws IOException{
         long ans = -1;
-        if(noKeys(node)>0){
-            for(int i = 0; i<order-1; i++){
-                raf.seek(((node*(3*order-1))*8)+16+16+(i*24));
-                long k = raf.readLong();
-                if(k==key){
-                    ans = raf.readLong();
-                }else if(k>key){
-                    //go to left child of k
-                    raf.seek(((node*(3*order-1))*8)+16+8+(i*24));
-                    long n = raf.readLong();
-                    if(n!=-1){
-                        ans = search(key, n); 
-                    }else{
-                        ans = -1;
-                    }
-                }else{
-                    raf.seek(((node*(3*order-1))*8)+16+8+((order-1)*24));
-                    long n = raf.readLong();
-                    if(n!=-1){
-                        ans = search(key, n); 
-                    }else{
-                        ans = -1;
-                    }
-                }
-            }
+        long node = search(key, 0);
+        for(int i = 0; i <order-1; i++){
+           raf.seek(((node*(3*order-1))*8)+16+16+(i*24)); 
+           if(raf.readLong()==key){
+               ans = raf.readLong();
+           }
         }
-        System.out.println(key + "    " +ans);
         return ans;
     }
     
-    public static void insert(long node, long key, long offSet) throws IOException
-    {
-        long[] arr = new long[3*order+1];
+    public static void insert(long node, long key, long offSet) throws IOException{
+        long[] arr = new long[3*order+2];
         raf.seek(((node*(3*order-1))*8)+16);        
         for(int j = 0; j < 3*order-1; j++){
             arr[j] = raf.readLong();
@@ -234,23 +214,25 @@ public class bt {
                 arr[3] = offSet; 
                 arr[4] = -1; 
             }
+            
             raf.seek(((node*(3*order-1))*8)+16);
             for(int a = 0; a < 3*order-1; a++){
                 raf.writeLong(arr[a]);
             }
         }else{
+            
             int j = 0;
-            while(j < noKeys(node) && key > arr[2 + 3 * (j - 1)])
-            {
+            int x = 0;
+            if(j < noKeys(node) && key > arr[2 + x]){
                 j++;
+                x += 3;
             }
             insert(arr[1 + (3 * j)], key, offSet);
-            if(noKeys(arr[1 + (3 * j)]) == order)
-            {
-                split(node , j ,arr);
-            }
-            else
-            {
+            System.out.println("n ear!   " + arr[1+3*j]);
+            if(noKeys(arr[1 + (3 * j)]) == order-1){
+                System.out.println("split!");
+                split(node, j, arr);
+            }else{
                 raf.seek(((node*(3*order-1))*8)+16);
                 for(int a = 0; a < 3*order-1; a++){
                      raf.writeLong(arr[a]);
