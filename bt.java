@@ -44,6 +44,8 @@ public class bt {
                 raf.writeLong(-1);
                 raf.seek(8);
                 raf.writeLong(nodeCounter-1);
+                raf.seek(((rootNo*(3*order-1))*8)+16);
+                raf.writeLong(nodeCounter-1);
                 insert(nodeCounter-1, key, insertCounter);   
             }else{
                 insert(rootNo, key, insertCounter);   
@@ -61,7 +63,10 @@ public class bt {
         System.out.println("KILL me pls");
         nodeCounter++;
         raf.seek(0);
-        raf.seek((((raf.readLong()-1)*(3*order-1))*8)+16);
+        long numRecs = raf.readLong();
+        
+        System.out.println("newNode   " + numRecs);
+        raf.seek(((numRecs*(3*order-1))*8)+16);
         raf.writeLong(-1);
         for(int i = 0; i < order-1; i++){
             raf.writeLong(-1);
@@ -73,6 +78,7 @@ public class bt {
         raf.seek(0);
         raf.writeLong(nodeCounter);
         
+        System.out.println("rootNode   " + rootNode);
         raf.seek(((rootNode*(3*order-1))*8)+16);
         raf.writeLong(-1);
         for(int i = 0; i < order-1; i++){
@@ -81,9 +87,9 @@ public class bt {
             raf.writeLong(-1);
         }
         raf.writeLong(-1);
+        
                 
-        raf.seek(0);
-        long numRecs = raf.readLong();
+                
         if(order % 2 != 0){
             int index = 0;
             raf.seek(((rootNode*(3*order-1))*8)+16);
@@ -104,6 +110,14 @@ public class bt {
             index++;
             long os = Arr[index];
             index++;
+            
+            System.out.println();
+            for(int i = 0; Arr.length > i; i++){
+                System.out.print(Arr[i]);
+            } 
+            System.out.println();
+            
+            System.out.print(index);
             insert(Arr[0], k, os);
             raf.seek(((Arr[0]*(3*order-1))*8)+16+8+(j*24));
             raf.writeLong(nodeCounter-1);
@@ -173,6 +187,7 @@ public class bt {
     
     public static void insert(long node, long key, long offSet) throws IOException{
         long[] arr = new long[3*order+2];
+        System.out.print("this " + node);
         raf.seek(((node*(3*order-1))*8)+16);        
         for(int j = 0; j < 3*order-1; j++){
             arr[j] = raf.readLong();
@@ -215,12 +230,16 @@ public class bt {
                 arr[4] = -1; 
             }
             
-            raf.seek(((node*(3*order-1))*8)+16);
-            for(int a = 0; a < 3*order-1; a++){
-                raf.writeLong(arr[a]);
+            if(nodeCounter == 2 && i==order-1){
+                System.out.print("node " + node);
+                split(node, 0, arr);
+            }else{
+                raf.seek(((node*(3*order-1))*8)+16);
+                for(int a = 0; a < 3*order-1; a++){
+                    raf.writeLong(arr[a]);
+                }
             }
         }else{
-            
             int j = 0;
             int x = 0;
             if(j < noKeys(node) && key > arr[2 + x]){
@@ -228,9 +247,9 @@ public class bt {
                 x += 3;
             }
             insert(arr[1 + (3 * j)], key, offSet);
-            System.out.println("n ear!   " + arr[1+3*j]);
-            if(noKeys(arr[1 + (3 * j)]) == order-1){
-                System.out.println("split!");
+            System.out.println("n ear!   " + node);
+            if(noKeys(node) == order-1){
+                System.out.println("split!   " + node);
                 split(node, j, arr);
             }else{
                 raf.seek(((node*(3*order-1))*8)+16);
