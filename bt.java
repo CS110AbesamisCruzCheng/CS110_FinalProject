@@ -292,7 +292,7 @@ public class bt {
         }
         return keys;
     }
-    
+    //sets a node as a parent node
     public static void setParent(long node) throws IOException
     {
         for(int j = 0; j < order; j++)
@@ -307,6 +307,7 @@ public class bt {
         }
     }
     
+    //Test outputs to see if the node id correctly corresponds to thephrase assigned 
     public static void print(int node) throws IOException{
         raf.seek(((node*(3*order-1))*8)+16);
         System.out.println("parent   " + raf.readLong());
