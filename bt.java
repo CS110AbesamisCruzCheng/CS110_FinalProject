@@ -1,11 +1,11 @@
 import java.io.*;
 import java.util.*;
-
+//bt class to construct the binary tree
 public class bt {
     static int order = 7;
     static long nodeCounter = 1;  //data.bt
     static int insertCounter = -1; //data.values
-    static RandomAccessFile raf;
+    static RandomAccessFile raf; //raf input file
     
     public bt(String s) throws IOException{
         raf = new RandomAccessFile(s, "rwd");
